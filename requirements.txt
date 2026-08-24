@@ -20,8 +20,6 @@ compare50==1.2.13
 contourpy==1.3.3
 cowsay==6.1
 cryptography==50.0.0
-cs50==9.4.0
-CS50-VSIX-Client @ file:///opt/cs50/extensions/cs50vsix-client
 cssbeautifier==2.0.3
 cssselect2==0.9.0
 cycler==0.12.1
