@@ -9,7 +9,7 @@ Simple Web App built with Python where the main function is to download any audi
 # Pre-requisites
 - Python (Version 3.13)
 
-# Getting Started
+# Getting Started in Development
 To ensure a stable development environment, I recommend setting up a virtual environment with the required python version and installing all packages in the **requirements.txt** file.
 
 **(Ubuntu 22.04)**
@@ -38,7 +38,7 @@ source .venv/bin/activate
 
 ```
 sudo apt update
-sudo apt install python3.13-dev pkg-config
+sudo apt install python3.13-dev pkg-config libltdl7 libkrb5-3 libgssapi-krb5-2
 ```
 ```
 pip install -r requirements.txt
@@ -46,3 +46,9 @@ pip install -r requirements.txt
 
 5. With all this set, you are ready to start the Flask app! 
 ```flask --app project run```
+
+# Initialize DB
+
+If you wish so and if you have admin permissions for Azure SQL Server, you can initialize fresh new tables in play_along_app_db using the following command. Make sure you are in the same dir as the `project.py` file.
+
+```flask --app project init-db```
