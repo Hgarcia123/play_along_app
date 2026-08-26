@@ -1,1 +1,22 @@
 <!-- Extends base.html and outputs the waveform of the file downloaded -->
+<script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+<script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+
+<div id="waveform"></div>
+<button id="playBtn">Play/Pause</button>
+
+<script>
+  const wsRegions = WaveSurfer.Regions.create();
+
+  const wavesurfer = WaveSurfer.create({
+    container: '#waveform',
+    waveColor: '#a8a8a8',
+    progressColor: '#4353ff',
+    url: '/audio/Something.mp3',   // served by your Flask route
+    plugins: [wsRegions]
+  });
+
+  document.getElementById('playBtn').addEventListener('click', () => {
+    wavesurfer.playPause();
+  });
+</script>

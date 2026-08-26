@@ -9,6 +9,24 @@ load_dotenv()
 
 connection_string = getenv("AZURE_SQL_CONNECTIONSTRING")
 
+def init_db():
+    db = get_db()
+
+    with current_app.open_resource('schema.sql') as f:
+        db.execute(f.read().decode('utf8'))
+
+
+@click.command('init-db')
+def init_db_command():
+    """DROPS ALL TABLES AND CREATES NEW ONES"""
+    init_db()
+    click.echo('===DB Initialized===')
+    
+
+def init_app(app:Flask):
+    app.teardown_appcontext(close_db)
+    app.cli.add_command(init_db_command)
+
 def get_db():
     if "db" not in g:
         try:
@@ -26,20 +44,3 @@ def close_db(e=None):
 
     if db is not None:
         db.close()
-
-def init_db():
-    db = get_db()
-
-    with current_app.open_resource('schema.sql') as f:
-        db.execute(f.read().decode('utf8'))
-
-
-@click.command('init-db')
-def init_db_command():
-    """DROPS ALL TABLES AND CREATES NEW ONES"""
-    init_db()
-    click.echo('===DB Initialized===')
-
-def init_app(app:Flask):
-    app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)

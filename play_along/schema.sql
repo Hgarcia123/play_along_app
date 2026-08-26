@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS audio_tracks;
 
 CREATE TABLE audio_tracks (
     id INT IDENTITY(1,1) PRIMARY KEY,
+    youtube_id NVARCHAR(255) NOT NULL,
     artist NVARCHAR(255) NOT NULL,
     track_name NVARCHAR(255) NOT NULL,
     track_audio NVARCHAR(MAX) NOT NULL,
