@@ -4,7 +4,7 @@ Simple Web App built with Python where the main function is to download any audi
 # Main Frameworks/Packages
 - Flask
 - yt-dlp
-- SQLite (TODO)
+- Azure SQL Server
 
 # Pre-requisites
 - Python (Version 3.13)

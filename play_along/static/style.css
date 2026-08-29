@@ -1,3 +1,41 @@
 .Header {
     text-align: center;
 }
+
+.track-title{
+    align-items: center;
+    text-align: center;
+}
+
+.track-gallery {
+    margin: 0 auto;
+    border-collapse: collapse;
+    /* don't set width: 100% here */
+}
+
+.track-gallery th{
+    margin: 0;
+    text-align: center;
+    /* display: flex; */
+}
+
+.track-gallery td {
+    padding: 10px 16px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.thumb-wrap {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* crops instead of squashing */
+    object-position: center;
+}

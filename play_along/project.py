@@ -23,16 +23,21 @@ def main():
         #Send info to database
         send_track_info_to_db(track_info_dict)
 
-    return render_template('base.html')
+    #Query database for track data stored
+    track_data = get_track_info_from_db()
 
-@app.route("/test_wave")
-def wave_audio():
-    return render_template('waveform.html')
+    return render_template('base.html', track_data=track_data)
+
+@app.route("/wave/<song_name>")
+def wave_audio(song_name):
+
+    _song_name = song_name
+
+    return render_template('waveform.html', song_name=_song_name)
 
 @app.route("/audio/<filename>")
 def serve_audio(filename):
     return send_from_directory(AUDIO_DIR, filename)
-
 
 def get_audiotrack(url:str):
     global AUDIO_DIR
@@ -49,6 +54,18 @@ def get_audiotrack(url:str):
 
         return track_info_dict
 
+def get_track_info_from_db():
+        
+        conn = get_db()
+        cursor = conn.cursor()
+
+        query = """SELECT youtube_id, artist, track_name, track_audio, thumbnail FROM dbo.audio_tracks"""
+
+        track_data = cursor.execute(query)
+        cursor.commit()
+
+        return track_data
+
 def send_track_info_to_db(track_info:dict):
         
         conn = get_db()
@@ -63,7 +80,7 @@ def send_track_info_to_db(track_info:dict):
 
         query = f"""
             INSERT INTO audio_tracks (youtube_id, artist, track_name, track_audio, thumbnail)
-            VALUES(?, ?, ?, ?)
+            VALUES(?, ?, ?, ?, ?)
         """
 
         cursor.execute(query, (youtube_id, artist, track_name, track_audio, thumbnail))

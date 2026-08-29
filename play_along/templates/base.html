@@ -5,6 +5,7 @@
     <title>Play-Along Assistant</title>
     <link rel="stylesheet" type="text/css" href="static/style.css">
   </head>
+
   <div class="Header">
     <h1>Play-Along Assistant</h1>
     <body>
@@ -16,4 +17,35 @@
         </form>
     </body>
   </div>
+
+  <h2 class="track-title">Track Gallery</h2>
+
+  <table class="track-gallery">
+      <thead>
+          <tr>
+              <th>Artist</th>
+              <th>Song</th>
+              <th>Album Cover</th>
+              <th>Link to wave page</th>
+          </tr>
+      </thead>
+      <tbody>
+      {% for track in track_data %}
+      <tr>
+          <td>{{ track.artist }}</td>
+          <td>{{ track.track_name }}</td>
+          <td>
+            <div class="thumb-wrap">
+              <img src="{{ track.thumbnail }}" alt="thumbnail">
+            </div>
+          </td>
+          <td>
+            <a href="{{ url_for('wave_audio', song_name=track.track_name) }}" class="play-link">
+              <button type="button">Go to</button>
+            </a>  
+          </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+  </table>
 </html>
