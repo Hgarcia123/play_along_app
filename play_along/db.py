@@ -1,6 +1,7 @@
 from os import getenv
 from mssql_python import connect
 import click
+import time
 
 from flask import g, current_app, Flask
 from dotenv import load_dotenv
@@ -27,16 +28,22 @@ def init_app(app:Flask):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
 
-def get_db():
-    if "db" not in g:
+def get_db(retries=5, delay=5):
+    last_err = None
+
+    for attempt in range(1, retries + 1):
         try:
-            g.db = connect(connection_string)
-            g.db.setautocommit(True)
-            
-            return g.db
+            if "db" not in g:
+                g.db = connect(connection_string)
+                g.db.setautocommit(True)
+                
+                return g.db
 
         except Exception as e:
-            print(e)
+            last_err = e
+            print(f"DB connect attemp {attempt} failed: {e}")
+            time.sleep(delay)
+    raise RuntimeError(f"Could not connect to DB after {retries} attempts: {last_err}")
 
 
 def close_db(e=None):

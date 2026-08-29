@@ -57,12 +57,12 @@ def get_audiotrack(url:str):
 def get_track_info_from_db():
         
         conn = get_db()
-        cursor = conn.cursor()
 
-        query = """SELECT youtube_id, artist, track_name, track_audio, thumbnail FROM dbo.audio_tracks"""
-
-        track_data = cursor.execute(query)
-        cursor.commit()
+        with conn:
+             with conn.cursor() as cursor:       
+                query = """SELECT youtube_id, artist, track_name, track_audio, thumbnail FROM dbo.audio_tracks"""
+                cursor.execute(query)
+                track_data = cursor.fetchall()
 
         return track_data
 
