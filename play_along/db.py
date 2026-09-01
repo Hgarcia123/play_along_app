@@ -38,10 +38,12 @@ def get_db(retries=5, delay=5):
                 g.db.setautocommit(True)
                 
                 return g.db
+            else:
+                return g.db
 
         except Exception as e:
             last_err = e
-            print(f"DB connect attemp {attempt} failed: {e}")
+            print(f"DB connect attempt {attempt} failed: {e}")
             time.sleep(delay)
     raise RuntimeError(f"Could not connect to DB after {retries} attempts: {last_err}")
 

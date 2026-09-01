@@ -25,6 +25,7 @@
           <tr>
               <th>Artist</th>
               <th>Song</th>
+              <th>Album</th>
               <th>Album Cover</th>
               <th>Link to wave page</th>
           </tr>
@@ -34,6 +35,7 @@
       <tr>
           <td>{{ track.artist }}</td>
           <td>{{ track.track_name }}</td>
+          <td>{{ track.track_album }}</td>
           <td>
             <div class="thumb-wrap">
               <img src="{{ track.thumbnail }}" alt="thumbnail">

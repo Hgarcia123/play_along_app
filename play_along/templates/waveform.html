@@ -4,19 +4,113 @@
 <div id="waveform"></div>
 <button id="playBtn">Play/Pause</button>
 
+<table id="regions-table">
+<thead>
+  <tr>
+    <th>Label</th>
+    <th>Start</th>
+    <th>End</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+<tbody id="regions-table-body">
+
+</tbody>
+</table>
+
+<button id="save-button">Save to DB</button>
+
 <script>
   const wsRegions = WaveSurfer.Regions.create();
 
   var song_name = '{{ song_name }}'
 
+  // Creation of random color rgba
+  const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
+  const randomByte = () => randomNumber(0,255)
+  const randomCssRgba = () => `rgba(${[randomByte(), randomByte(), randomByte(), '0.2'].join(',')})` 
+
   const wavesurfer = WaveSurfer.create({
     container: '#waveform',
     waveColor: '#a8a8a8',
     progressColor: '#4353ff',
-    url: '/audio/' + encodeURIComponent(song_name) + '.mp3',   // All audio files will be .mp3
+    url: '/audio/' + fullyEncodeURIComponent(song_name) + '.mp3',   // All audio files will be .mp3
+    plugins: [
+      wsRegions
+    ]
   });
 
   document.getElementById('playBtn').addEventListener('click', () => {
     wavesurfer.playPause();
   });
+
+  //Enable click-and-drag creation of new reagions
+  wavesurfer.on('ready', () => {
+    wsRegions.enableDragSelection({
+      // color: randomCssRgba()
+    });
+    
+    wsRegions.on('region-created', (region) => {
+      const label = prompt("Label this region", 'New region');
+      if (label) {
+        region.setContent(label);
+        region.setOptions({ color: randomCssRgba() });
+      } else{
+        region.remove();
+        return;
+      }
+      refreshRegionsTable();
+    });
+
+    wsRegions.on('region-updated', () => {
+      refreshRegionsTable();
+    });
+
+    wsRegions.on('region-removed', () => {
+      refreshRegionsTable();
+    });
+    
+  });
+
+  function refreshRegionsTable() {
+    const tbody = document.getElementById('regions-table-body');
+    tbody.innerHTML = '';
+
+    const regions = wsRegions.getRegions();
+
+    regions.forEach((region) => {
+      const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td>${region.content?.textContent || region.content || ''}</td>
+      <td>${region.start.toFixed(2)}</td>
+      <td>${region.end.toFixed(2)}</td>
+      <td>
+        <button data-action="play">▶</button>
+        <button data-action="delete">✕</button>
+      </td>
+    `;
+
+    row.querySelector('[data-action="play"]').addEventListener('click', () => {
+      region.play();
+    });
+
+    row.querySelector('[data-action="delete"]').addEventListener('click', () => {
+      region.remove();
+    });
+
+    tbody.appendChild(row);
+    });
+
+    function saveRegionsToDb(){
+
+    }
+  }
+
+  function fullyEncodeURIComponent(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, (c) =>
+    '%' + c.charCodeAt(0).toString(16).toUpperCase()
+  );
+}
+
 </script>

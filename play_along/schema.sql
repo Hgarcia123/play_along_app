@@ -5,6 +5,7 @@ CREATE TABLE audio_tracks (
     youtube_id NVARCHAR(255) NOT NULL,
     artist NVARCHAR(255) NOT NULL,
     track_name NVARCHAR(255) NOT NULL,
+    track_album NVARCHAR(255) NULL,
     track_audio NVARCHAR(MAX) NOT NULL,
     thumbnail NVARCHAR(MAX) NULL
 );

@@ -13,6 +13,7 @@ init_app(app)
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
+
     if request.method == 'POST':
         #TODO: Validate URL with regex
         url = request.form.get('youtube_url')
@@ -55,36 +56,38 @@ def get_audiotrack(url:str):
         return track_info_dict
 
 def get_track_info_from_db():
-        
-        conn = get_db()
 
-        with conn:
-             with conn.cursor() as cursor:       
-                query = """SELECT youtube_id, artist, track_name, track_audio, thumbnail FROM dbo.audio_tracks"""
-                cursor.execute(query)
-                track_data = cursor.fetchall()
+    conn = get_db()
+    cursor = conn.cursor()
+  
+    query = """SELECT youtube_id, artist, track_name, track_audio, track_album, thumbnail FROM dbo.audio_tracks"""
+    cursor.execute(query)
+    track_data = cursor.fetchall()
+    cursor.close()
 
-        return track_data
+    return track_data
 
 def send_track_info_to_db(track_info:dict):
+
+    conn = get_db()
+    cursor = conn.cursor()
         
-        conn = get_db()
-        cursor = conn.cursor()
+    #Get info from dict
+    youtube_id = track_info.get('id', "")
+    artist = track_info.get('artist', "")
+    track_name = track_info.get('title', "")
+    track_album = track_info.get('album', "")
+    track_audio = "PLACEHOLDER"
+    thumbnail = track_info.get('thumbnail', "")
 
-        #Get info from dict
-        youtube_id = track_info.get('id', "")
-        artist = track_info.get('artist', "")
-        track_name = track_info.get('title', "")
-        track_audio = "PLACEHOLDER"
-        thumbnail = track_info.get('thumbnail', "")
+    query = f"""
+        INSERT INTO audio_tracks (youtube_id, artist, track_name, track_audio, track_album, thumbnail)
+        VALUES(?, ?, ?, ?, ?, ?)
+    """
 
-        query = f"""
-            INSERT INTO audio_tracks (youtube_id, artist, track_name, track_audio, thumbnail)
-            VALUES(?, ?, ?, ?, ?)
-        """
-
-        cursor.execute(query, (youtube_id, artist, track_name, track_audio, thumbnail))
-        conn.commit()
+    cursor.execute(query, (youtube_id, artist, track_name, track_audio, track_album, thumbnail))
+    conn.commit()
+    cursor.close()
 
 
 if __name__ == '__main__':
