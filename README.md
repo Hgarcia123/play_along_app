@@ -1,6 +1,4 @@
 # Play Along App
-Simple Web App built with Python where the main function is to download any audio track of a song from Youtube and add loop points to help you practise!
-
 # Main Frameworks/Packages
 - Flask
 - yt-dlp
