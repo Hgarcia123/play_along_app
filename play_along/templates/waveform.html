@@ -46,6 +46,9 @@
 
   //Enable click-and-drag creation of new reagions
   wavesurfer.on('ready', () => {
+
+    let activeRegion = null;
+
     wsRegions.enableDragSelection({
       // color: randomCssRgba()
     });
@@ -54,7 +57,8 @@
       const label = prompt("Label this region", 'New region');
       if (label) {
         region.setContent(label);
-        region.setOptions({ color: randomCssRgba() });
+        region.loop = true;
+        region.setOptions({ color: randomCssRgba()});
       } else{
         region.remove();
         return;
@@ -69,6 +73,33 @@
     wsRegions.on('region-removed', () => {
       refreshRegionsTable();
     });
+
+    wsRegions.on('region-in', (region) => {
+      activeRegion = region
+    })
+
+    wsRegions.on('region-out', (region) => {
+      if (activeRegion !== region) return;
+
+      // only loop if we left by playing past the end, not by seeking away
+      const atEnd = Math.abs(wavesurfer.getCurrentTime() - region.end) < 0.1;
+      if (region.loop && atEnd) {
+        region.play();
+      } else {
+        activeRegion = null;
+      }
+    })
+
+    wsRegions.on('region-clicked', (region, e) => {
+      e.stopPropagation();
+      activeRegion = region;
+      region.play();
+    });
+
+    wsRegions.on('interaction', (time) => {
+      const hit = wsRegions.getRegions().find(r => time >= r.start && time <= r.end);
+      activeRegion = hit ?? null;
+    })
     
   });
 
@@ -92,7 +123,7 @@
     `;
 
     row.querySelector('[data-action="play"]').addEventListener('click', () => {
-      region.play();
+        region.play();
     });
 
     row.querySelector('[data-action="delete"]').addEventListener('click', () => {
