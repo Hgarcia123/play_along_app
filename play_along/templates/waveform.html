@@ -13,17 +13,19 @@
     <th>Actions</th>
   </tr>
 </thead>
-<tbody id="regions-table-body">
+<form method="POST">
+  <tbody id="regions-table-body" >
 
-</tbody>
-</table>
+  </tbody>
+  </table>
+  <input type="hidden" name="regions" id="regions-data">
 
-<button id="save-button">Save to DB</button>
+  <input type="submit" value="Save to DB">
+</form>
+
 
 <script>
   const wsRegions = WaveSurfer.Regions.create();
-
-  var song_name = '{{ song_name }}'
 
   // Creation of random color rgba
   const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
@@ -34,7 +36,7 @@
     container: '#waveform',
     waveColor: '#a8a8a8',
     progressColor: '#4353ff',
-    url: '/audio/' + fullyEncodeURIComponent(song_name) + '.mp3',   // All audio files will be .mp3
+    url: {{ url | tojson }},
     plugins: [
       wsRegions
     ]
@@ -42,6 +44,15 @@
 
   document.getElementById('playBtn').addEventListener('click', () => {
     wavesurfer.playPause();
+  });
+
+  document.querySelector('form').addEventListener('submit', () => {
+    const data = wsRegions.getRegions().map(r => ({
+        label: r.content?.textContent || r.content || '',
+        start: r.start,
+        end: r.end,
+    }));
+    document.getElementById('regions-data').value = JSON.stringify(data);
   });
 
   //Enable click-and-drag creation of new reagions
@@ -112,36 +123,32 @@
     regions.forEach((region) => {
       const row = document.createElement('tr');
 
-    row.innerHTML = `
-      <td>${region.content?.textContent || region.content || ''}</td>
-      <td>${region.start.toFixed(2)}</td>
-      <td>${region.end.toFixed(2)}</td>
-      <td>
-        <button data-action="play">▶</button>
-        <button data-action="delete">✕</button>
-      </td>
-    `;
+      row.innerHTML = `
+        <td>${region.content?.textContent || region.content || ''}</td>
+        <td>${region.start.toFixed(1)}</td>
+        <td>${region.end.toFixed(1)}</td>
+        <td>
+          <button data-action="play">▶</button>
+          <button data-action="delete">✕</button>
+        </td>
+      `;
 
-    row.querySelector('[data-action="play"]').addEventListener('click', () => {
+      row.querySelector('[data-action="play"]').addEventListener('click', () => {
         region.play();
+      });
+
+      row.querySelector('[data-action="delete"]').addEventListener('click', () => {
+        region.remove();
+      });
+
+      tbody.appendChild(row);
     });
-
-    row.querySelector('[data-action="delete"]').addEventListener('click', () => {
-      region.remove();
-    });
-
-    tbody.appendChild(row);
-    });
-
-    function saveRegionsToDb(){
-
-    }
   }
 
-  function fullyEncodeURIComponent(str) {
-  return encodeURIComponent(str).replace(/[!'()*]/g, (c) =>
-    '%' + c.charCodeAt(0).toString(16).toUpperCase()
-  );
-}
+  // function saveRegionsToDb(){
+
+  // }
+
+
 
 </script>

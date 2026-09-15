@@ -18,6 +18,15 @@
     </body>
   </div>
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash error">
+        {{ message }}
+        <button onclick="this.parentElement.remove()">×</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
   <h2 class="track-title">Track Gallery</h2>
 
   <table class="track-gallery">
@@ -42,7 +51,7 @@
             </div>
           </td>
           <td>
-            <a href="{{ url_for('wave_audio', song_name=track.track_name) }}" class="play-link">
+            <a href="{{ url_for('project.wave_audio', track_id=track.id) }}" class="play-link">
               <button type="button">Go to</button>
             </a>  
           </td>
