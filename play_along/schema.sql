@@ -6,8 +6,15 @@ CREATE TABLE audio_tracks (
     artist NVARCHAR(255) NOT NULL,
     track_name NVARCHAR(255) NOT NULL,
     track_album NVARCHAR(255) NULL,
-    track_audio NVARCHAR(MAX) NOT NULL,
-    thumbnail NVARCHAR(MAX) NULL
+    thumbnail NVARCHAR(MAX) NULL,
+    duration_sec INT,
+    blob_name NVARCHAR(512) NOT NULL UNIQUE,
+    container NVARCHAR(63) NOT NULL DEFAULT 'play-along-app-audio-files',
+    content_type NVARCHAR(100) DEFAULT 'audio/mpeg',
+    uploaded_at DATETIME2 DEFAULT SYSUTCDATETIME()
 );
+
+ALTER TABLE audio_tracks
+ADD CONSTRAINT AK_youtube_id UNIQUE(youtube_id);
 
 -- TODO: CREATE TABLE FOR TRACK TIMESTAMPS WITH LOOPS AND OTHER FEATURES
