@@ -29,6 +29,8 @@ bp = Blueprint("project", __name__)
 
 
 # ENDPOINTS
+
+## HOMEPAGE
 @bp.route("/", methods=["GET", "POST"])
 def main():
     if request.method == "POST":
@@ -61,18 +63,15 @@ def main():
     track_data = get_all_track_info_from_db()
     return render_template("base.html", track_data=track_data)
 
-
+## WAVEFORM
 @bp.route("/wave/<int:track_id>", methods=["GET", "POST"])
 def wave_audio(track_id):
     if request.method == "POST":
         # Get all regions created for current track
         regions = json.loads(request.form.get("regions", "[]"))
 
-        for region in regions:
-            region["audio_track_id"] = track_id
-
-            # Send regions to DB
-            send_regions_to_db(region)
+        # Send regions to DB
+        send_regions_to_db(regions, track_id)
 
     # Get track info
     conn = get_db()
