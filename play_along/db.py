@@ -3,6 +3,8 @@ from mssql_python import connect
 import click
 import time
 
+from play_along.blob import delete_all_audio_from_az_blob
+
 from flask import g, current_app, Flask
 from dotenv import load_dotenv
 
@@ -13,9 +15,12 @@ connection_string = getenv("AZURE_SQL_CONNECTIONSTRING")
 def init_db():
     db = get_db()
 
+    #Recreate Schema
     with current_app.open_resource('schema.sql') as f:
         db.execute(f.read().decode('utf8'))
 
+    #Clear blob storage
+    delete_all_audio_from_az_blob()
 
 @click.command('init-db')
 def init_db_command():

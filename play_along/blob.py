@@ -43,6 +43,17 @@ def delete_audio_from_az_blob(blob_name:str):
 
     blob.delete_blob(delete_snapshots='include')
 
+def delete_all_audio_from_az_blob():
+
+    container = blob_service_client.get_container_client(container="play-along-app-audio-files")
+
+    blobList = [*container.list_blobs()]
+    while len(blobList) > 0:
+        batch = blobList[0:255]
+        print("Deleting " + str(len(batch)) + " of " + str(len(batch)) + " blobs.")
+        container.delete_blobs(*batch)
+        del blobList[0:255]
+
 def blob_sas_url(container:str, blob_name:str, minutes:int = 60):
     start = datetime.now(timezone.utc) - timedelta(minutes=5)
     expiry = datetime.now(timezone.utc) + timedelta(minutes=minutes)
