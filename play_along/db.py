@@ -12,26 +12,29 @@ load_dotenv()
 
 connection_string = getenv("AZURE_SQL_CONNECTIONSTRING")
 
+
 def init_db():
     db = get_db()
 
-    #Recreate Schema
-    with current_app.open_resource('schema.sql') as f:
-        db.execute(f.read().decode('utf8'))
+    # Recreate Schema
+    with current_app.open_resource("schema.sql") as f:
+        db.execute(f.read().decode("utf8"))
 
-    #Clear blob storage
+    # Clear blob storage
     delete_all_audio_from_az_blob()
 
-@click.command('init-db')
+
+@click.command("init-db")
 def init_db_command():
     """DROPS ALL TABLES AND CREATES NEW ONES"""
     init_db()
-    click.echo('===DB Initialized===')
-    
+    click.echo("===DB Initialized===")
 
-def init_app(app:Flask):
+
+def init_app(app: Flask):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+
 
 def get_db(retries=5, delay=5):
     last_err = None
@@ -41,7 +44,7 @@ def get_db(retries=5, delay=5):
             if "db" not in g:
                 g.db = connect(connection_string)
                 g.db.setautocommit(True)
-                
+
                 return g.db
             else:
                 return g.db
@@ -54,7 +57,96 @@ def get_db(retries=5, delay=5):
 
 
 def close_db(e=None):
-    db = g.pop('db', None)
+    db = g.pop("db", None)
 
     if db is not None:
         db.close()
+
+
+# CRUD LIKE OPERATIONS
+
+
+def get_all_track_info_from_db():
+    conn = get_db()
+    cursor = conn.cursor()
+
+    query = """SELECT id, youtube_id, artist, track_name, track_album, thumbnail FROM dbo.audio_tracks"""
+    cursor.execute(query)
+    track_data = cursor.fetchall()
+    cursor.close()
+
+    return track_data
+
+
+def get_regions_from_db(youtube_id: str): ...
+
+
+def send_regions_to_db(regions: dict):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get info from dict
+    audio_track_id = regions.get("audio_track_id", "")
+    label = regions.get("label", "")
+    start = regions.get("start", "")
+    end = regions.get("end", "")
+
+    # UPSERT Query
+    query = """
+        MERGE INTO loop_regions AS target
+        USING (VALUES(?, ?, ?, ?)) AS source (audio_track_id, label, [start], [end])
+        ON target.audio_track_id = source.audio_track_id
+        WHEN MATCHED THEN
+            UPDATE SET target.label = source.label,
+                    target.[start] = source.[start],
+                    target.[end] = source.[end]
+        WHEN NOT MATCHED THEN
+            INSERT (audio_track_id, label, [start], [end])
+            VALUES (source.audio_track_id, source.label, source.[start], source.[end]);
+    """
+
+    cursor.execute(query, (audio_track_id, label, start, end))
+
+    conn.commit()
+    cursor.close()
+
+
+def send_track_info_to_db(track_info: dict, blob_name: str):
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get info from dict
+    youtube_id = track_info.get("id", "")
+    artist = track_info.get("artist", "")
+    track_name = track_info.get("title", "")
+    track_album = track_info.get("album", "")
+    thumbnail = track_info.get("thumbnail", "")
+    duration_sec = track_info.get("duration", "")
+
+    # Assign info of blob storage
+    blob_name = blob_name
+    container = "play-along-app-audio-files"
+    content_type = "audio/mpeg"
+
+    query = f"""
+        INSERT INTO audio_tracks (youtube_id, artist, track_name, track_album, thumbnail, duration_sec, blob_name, container, content_type)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    cursor.execute(
+        query,
+        (
+            youtube_id,
+            artist,
+            track_name,
+            track_album,
+            thumbnail,
+            duration_sec,
+            blob_name,
+            container,
+            content_type,
+        ),
+    )
+    conn.commit()
+    cursor.close()
