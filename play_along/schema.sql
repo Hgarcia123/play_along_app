@@ -17,4 +17,20 @@ CREATE TABLE audio_tracks (
 ALTER TABLE audio_tracks
 ADD CONSTRAINT AK_youtube_id UNIQUE(youtube_id);
 
+DROP TABLE IF EXISTS loop_regions;
+
+CREATE TABLE loop_regions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    audio_track_id INT NOT NULL,
+    label NVARCHAR(255) NULL,
+    [start] FLOAT NOT NULL,
+    [end] FLOAT NOT NULL
+);
+
+ALTER TABLE loop_regions
+ADD CONSTRAINT FK_audiotracks_loopregions FOREIGN KEY (audio_track_id)
+REFERENCES audio_tracks (id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
 -- TODO: CREATE TABLE FOR TRACK TIMESTAMPS WITH LOOPS AND OTHER FEATURES

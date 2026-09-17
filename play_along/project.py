@@ -1,13 +1,17 @@
-from play_along.db import get_db, init_app
+from play_along.db import (
+    get_db
+    ,get_all_track_info_from_db
+    ,send_regions_to_db
+    ,send_track_info_to_db
+)
 from play_along.blob import (
     blob_sas_url,
     send_audio_to_az_blob,
-    delete_audio_from_az_blob,
 )
 
 from mssql_python import IntegrityError
 
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, abort
 import json
 from dotenv import load_dotenv
 
@@ -35,7 +39,7 @@ def main():
             # Split string to get youtube_id
             youtube_id = url.rsplit("/watch?v=", maxsplit=1)[-1]
 
-            #Query db for track
+            # Query db for track
             songExists = get_track_by_id(youtube_id)
 
             if not songExists:
@@ -61,9 +65,14 @@ def main():
 @bp.route("/wave/<int:track_id>", methods=["GET", "POST"])
 def wave_audio(track_id):
     if request.method == "POST":
+        # Get all regions created for current track
         regions = json.loads(request.form.get("regions", "[]"))
 
-        print(regions)
+        for region in regions:
+            region["audio_track_id"] = track_id
+
+            # Send regions to DB
+            send_regions_to_db(region)
 
     # Get track info
     conn = get_db()
@@ -80,15 +89,7 @@ def wave_audio(track_id):
     return render_template("waveform.html", url=sas_url)
 
 
-@bp.route("/test_youtube_id/<string:youtube_id>", methods=["GET"])
-def test_youtube_url(youtube_id:str):
-
-    res = get_track_by_id(youtube_id)
-
-    return str(res)
-
-
-def download_audiotrack(url:str, download:bool = True):
+def download_audiotrack(url: str, download: bool = True):
     global AUDIO_DIR
 
     ydl_opts = {
@@ -115,67 +116,7 @@ def get_track_by_id(youtube_id: str):
     cursor.execute(query)
     res = cursor.fetchall()
 
-    return True if len(res) > 1 else False 
-
-
-def get_all_track_info_from_db():
-    conn = get_db()
-    cursor = conn.cursor()
-
-    query = """SELECT id, youtube_id, artist, track_name, track_album, thumbnail FROM dbo.audio_tracks"""
-    cursor.execute(query)
-    track_data = cursor.fetchall()
-    cursor.close()
-
-    return track_data
-
-
-def get_regions_from_db(youtube_id: str): ...
-
-
-def send_regions_to_db(regions: json): ...
-
-
-def send_track_info_to_db(track_info: dict, blob_name: str):
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    # Get info from dict
-    youtube_id = track_info.get("id", "")
-    artist = track_info.get("artist", "")
-    track_name = track_info.get("title", "")
-    track_album = track_info.get("album", "")
-    thumbnail = track_info.get("thumbnail", "")
-    duration_sec = track_info.get("duration", "")
-
-    # Assign info of blob storage
-    blob_name = blob_name
-    container = "play-along-app-audio-files"
-    content_type = "audio/mpeg"
-
-    query = f"""
-        INSERT INTO audio_tracks (youtube_id, artist, track_name, track_album, thumbnail, duration_sec, blob_name, container, content_type)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-
-    cursor.execute(
-        query,
-        (
-            youtube_id,
-            artist,
-            track_name,
-            track_album,
-            thumbnail,
-            duration_sec,
-            blob_name,
-            container,
-            content_type,
-        ),
-    )
-    conn.commit()
-    cursor.close()
-
+    return True if len(res) > 1 else False
 
 if __name__ == "__main__":
     main()
