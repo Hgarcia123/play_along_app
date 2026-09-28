@@ -99,6 +99,7 @@ def download_audiotrack(url: str, download: bool = True):
 
         return track_info_dict
 
+
 def get_track_by_id(youtube_id: str):
     conn = get_db()
     cursor = conn.cursor()
@@ -133,13 +134,14 @@ def get_regions_by_id(audio_track_id: int):
     conn = get_db()
     cursor = conn.cursor()
 
-    query = f"""SELECT label, [start], [end] from dbo.loop_regions where audio_track_id = '{audio_track_id}'"""
+    query = f"""SELECT label, [start], [end], color from dbo.loop_regions where audio_track_id = '{audio_track_id}'"""
 
     cursor.execute(query)
     regions = cursor.fetchall()
 
     regions = [
-        {"label": label, "start": start, "end": end} for label, start, end in regions
+        {"label": label, "start": start, "end": end, "color": color}
+        for label, start, end, color in regions
     ]
 
     return regions if len(regions) > 0 else []

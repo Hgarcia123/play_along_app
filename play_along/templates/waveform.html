@@ -51,6 +51,7 @@
       label: r.content?.textContent || r.content || '',
       start: r.start,
       end: r.end,
+      color: r.color
     }));
     document.getElementById('regions-data').value = JSON.stringify(data);
   });
@@ -70,7 +71,7 @@
         content: r.label,
         start: r.start,
         end: r.end,
-        color: randomCssRgba(),
+        color: r.color,
         drag: true,
         resize: true,
       });

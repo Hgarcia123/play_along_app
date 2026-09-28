@@ -24,7 +24,8 @@ CREATE TABLE loop_regions (
     audio_track_id INT NOT NULL,
     label NVARCHAR(255) NULL,
     [start] FLOAT NOT NULL,
-    [end] FLOAT NOT NULL
+    [end] FLOAT NOT NULL,
+    color NVARCHAR(255) NULL
 );
 
 ALTER TABLE loop_regions

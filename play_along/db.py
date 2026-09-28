@@ -92,23 +92,23 @@ def send_regions_to_db(regions: dict, track_id):
             )
             return
 
-        values_sql = ", ".join(["(?, ?, ?, ?)"] * len(regions))
+        values_sql = ", ".join(["(?, ?, ?, ?, ?)"] * len(regions))
         params = []
 
         for region in regions:
-            params.extend([track_id, region["label"], region["start"], region["end"]])
+            params.extend([track_id, region["label"], region["start"], region["end"], region["color"]])
 
         # UPSERT Query
         query = f"""
             MERGE INTO loop_regions AS target
-            USING (VALUES {values_sql}) AS source (audio_track_id, label, [start], [end])
+            USING (VALUES {values_sql}) AS source (audio_track_id, label, [start], [end], color)
             ON target.audio_track_id = source.audio_track_id AND target.label = source.label
             WHEN MATCHED THEN
                 UPDATE SET target.[start] = source.[start],
                         target.[end] = source.[end]
             WHEN NOT MATCHED THEN
-                INSERT (audio_track_id, label, [start], [end])
-                VALUES (source.audio_track_id, source.label, source.[start], source.[end])
+                INSERT (audio_track_id, label, [start], [end], color)
+                VALUES (source.audio_track_id, source.label, source.[start], source.[end], source.color)
             WHEN NOT MATCHED BY SOURCE
                 AND target.audio_track_id = ? THEN DELETE;
         """
