@@ -1,8 +1,27 @@
 <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
 <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
 
+<head>
+  <meta charset="utf-8">
+  <title>{{ track_data.track_name }} - {{ track_data.artist }}</title>
+  <link rel="stylesheet" type="text/css" href="/static/waveform_style.css">
+</head>
+
+<div class="track-header">
+  <div class="album-cover-wrap">
+    <img src="{{ track_data.thumbnail }}" alt="Album cover" width="120">
+  </div>
+  <div>
+    <h1>{{ track_data.track_name }}</h1>
+    <p>{{ track_data.artist }} · {{ track_data.track_album }}</p>
+  </div>
+</div>
+
 <div id="waveform"></div>
-<button id="playBtn">Play/Pause</button>
+
+<button id="playBtn" type="button" aria-label="Play/Pause">
+  <img id="playIcon" src="{{ url_for('static', filename='icons/play-button.png') }}" alt="Play">
+</button>
 
 <table id="regions-table">
   <thead>
@@ -18,12 +37,21 @@
 </table>
 <input type="hidden" name="regions" id="regions-data">
 
-<input type="submit" value="Save to DB">
+<input type="submit" value="Save to DB" class="saveBtn">
 </form>
 
 
 <script>
   const wsRegions = WaveSurfer.Regions.create();
+
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+
+
+  const ICONS = {
+    play: "{{ url_for('static', filename='icons/play-button.png') }}",
+    pause: "{{ url_for('static', filename='icons/pause.png') }}"
+  }
 
   // Creation of random color rgba
   const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
@@ -40,6 +68,16 @@
   ]
   });
 
+  wavesurfer.on('play', () => {
+    playIcon.src = ICONS.pause;
+    playIcon.alt = 'Pause';
+  });
+
+  wavesurfer.on('pause', () => {
+    playIcon.src = ICONS.play;
+    playIcon.alt = 'Play';
+  })
+
   const savedRegions = {{ regions | tojson }};
 
   document.getElementById('playBtn').addEventListener('click', () => {
@@ -54,6 +92,10 @@
       color: r.color
     }));
     document.getElementById('regions-data').value = JSON.stringify(data);
+  });
+
+  wavesurfer.on('play', () => {
+
   });
 
   //Enable click-and-drag creation of new reagions
