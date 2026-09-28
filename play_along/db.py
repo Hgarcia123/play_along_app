@@ -86,35 +86,42 @@ def send_regions_to_db(regions: dict, track_id):
     cursor = conn.cursor()
     try:
 
+        if not regions:
+            cursor.execute(
+                "DELETE FROM loop_regions WHERE audio_track_id = ?", track_id
+            )
+            return
+
+        values_sql = ", ".join(["(?, ?, ?, ?)"] * len(regions))
+        params = []
+
         for region in regions:
-            # Add track_id to JSON
-            region["audio_track_id"] = track_id
+            params.extend([track_id, region["label"], region["start"], region["end"]])
 
-            # Get info from dict
-            label = region.get("label", "")
-            start = region.get("start", "")
-            end = region.get("end", "")
+        # UPSERT Query
+        query = f"""
+            MERGE INTO loop_regions AS target
+            USING (VALUES {values_sql}) AS source (audio_track_id, label, [start], [end])
+            ON target.audio_track_id = source.audio_track_id AND target.label = source.label
+            WHEN MATCHED THEN
+                UPDATE SET target.[start] = source.[start],
+                        target.[end] = source.[end]
+            WHEN NOT MATCHED THEN
+                INSERT (audio_track_id, label, [start], [end])
+                VALUES (source.audio_track_id, source.label, source.[start], source.[end])
+            WHEN NOT MATCHED BY SOURCE
+                AND target.audio_track_id = ? THEN DELETE;
+        """
 
-            # UPSERT Query
-            query = """
-                MERGE INTO loop_regions AS target
-                USING (VALUES(?, ?, ?, ?)) AS source (audio_track_id, label, [start], [end])
-                ON target.audio_track_id = source.audio_track_id AND target.label = source.label
-                WHEN MATCHED THEN
-                    UPDATE SET target.label = source.label,
-                            target.[start] = source.[start],
-                            target.[end] = source.[end]
-                WHEN NOT MATCHED THEN
-                    INSERT (audio_track_id, label, [start], [end])
-                    VALUES (source.audio_track_id, source.label, source.[start], source.[end]);
-            """
+        params.append(track_id)
 
-            cursor.execute(query, (region["audio_track_id"], label, start, end))
+        cursor.execute(query, params)
 
         conn.commit()
         cursor.close()
     except Exception as e:
-        print("Failed to insert loop region in DB. Error:\n")
+        print(f"Failed to insert loop region in DB. Error:\n{e}")
+
 
 def send_track_info_to_db(track_info: dict, blob_name: str):
 

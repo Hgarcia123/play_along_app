@@ -5,22 +5,20 @@
 <button id="playBtn">Play/Pause</button>
 
 <table id="regions-table">
-<thead>
-  <tr>
-    <th>Label</th>
-    <th>Start</th>
-    <th>End</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-<form method="POST">
-  <tbody id="regions-table-body" >
+  <thead>
+    <tr>
+      <th>Label</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <form method="POST">
+    <tbody id="regions-table-body"></tbody>
+</table>
+<input type="hidden" name="regions" id="regions-data">
 
-  </tbody>
-  </table>
-  <input type="hidden" name="regions" id="regions-data">
-
-  <input type="submit" value="Save to DB">
+<input type="submit" value="Save to DB">
 </form>
 
 
@@ -29,18 +27,20 @@
 
   // Creation of random color rgba
   const randomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
-  const randomByte = () => randomNumber(0,255)
-  const randomCssRgba = () => `rgba(${[randomByte(), randomByte(), randomByte(), '0.2'].join(',')})` 
+  const randomByte = () => randomNumber(0, 255)
+  const randomCssRgba = () => `rgba(${[randomByte(), randomByte(), randomByte(), '0.2'].join(',')})`
 
   const wavesurfer = WaveSurfer.create({
     container: '#waveform',
     waveColor: '#a8a8a8',
     progressColor: '#4353ff',
     url: {{ url | tojson }},
-    plugins: [
-      wsRegions
-    ]
+  plugins: [
+    wsRegions
+  ]
   });
+
+  const savedRegions = {{ regions | tojson }};
 
   document.getElementById('playBtn').addEventListener('click', () => {
     wavesurfer.playPause();
@@ -48,9 +48,9 @@
 
   document.querySelector('form').addEventListener('submit', () => {
     const data = wsRegions.getRegions().map(r => ({
-        label: r.content?.textContent || r.content || '',
-        start: r.start,
-        end: r.end,
+      label: r.content?.textContent || r.content || '',
+      start: r.start,
+      end: r.end,
     }));
     document.getElementById('regions-data').value = JSON.stringify(data);
   });
@@ -63,14 +63,30 @@
     wsRegions.enableDragSelection({
       // color: randomCssRgba()
     });
-    
+
+    // Load previously saved regions
+    savedRegions.forEach((r) => {
+      const region = wsRegions.addRegion({
+        content: r.label,
+        start: r.start,
+        end: r.end,
+        color: randomCssRgba(),
+        drag: true,
+        resize: true,
+      });
+      region.loop = true
+    });
+
+    refreshRegionsTable()
+
+
     wsRegions.on('region-created', (region) => {
       const label = prompt("Label this region", 'New region');
       if (label) {
         region.setContent(label);
         region.loop = true;
-        region.setOptions({ color: randomCssRgba()});
-      } else{
+        region.setOptions({ color: randomCssRgba() });
+      } else {
         region.remove();
         return;
       }
@@ -111,7 +127,7 @@
       const hit = wsRegions.getRegions().find(r => time >= r.start && time <= r.end);
       activeRegion = hit ?? null;
     })
-    
+
   });
 
   function refreshRegionsTable() {

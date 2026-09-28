@@ -1,8 +1,8 @@
 from play_along.db import (
-    get_db
-    ,get_all_track_info_from_db
-    ,send_regions_to_db
-    ,send_track_info_to_db
+    get_db,
+    get_all_track_info_from_db,
+    send_regions_to_db,
+    send_track_info_to_db,
 )
 from play_along.blob import (
     blob_sas_url,
@@ -29,6 +29,7 @@ bp = Blueprint("project", __name__)
 
 
 # ENDPOINTS
+
 
 ## HOMEPAGE
 @bp.route("/", methods=["GET", "POST"])
@@ -63,6 +64,7 @@ def main():
     track_data = get_all_track_info_from_db()
     return render_template("base.html", track_data=track_data)
 
+
 ## WAVEFORM
 @bp.route("/wave/<int:track_id>", methods=["GET", "POST"])
 def wave_audio(track_id):
@@ -74,18 +76,12 @@ def wave_audio(track_id):
         send_regions_to_db(regions, track_id)
 
     # Get track info
-    conn = get_db()
-    cursor = conn.cursor()
+    sas_url = get_track_info(track_id)
 
-    query = (
-        f"""SELECT container, blob_name FROM dbo.audio_tracks where id = {track_id}"""
-    )
-    cursor.execute(query)
+    # Get previously saved regions of track
+    regions = get_regions_by_id(track_id)
 
-    track_data = cursor.fetchall()[0]
-
-    sas_url = blob_sas_url(track_data[0], track_data[1])
-    return render_template("waveform.html", url=sas_url)
+    return render_template("waveform.html", url=sas_url, regions=regions)
 
 
 def download_audiotrack(url: str, download: bool = True):
@@ -103,7 +99,6 @@ def download_audiotrack(url: str, download: bool = True):
 
         return track_info_dict
 
-
 def get_track_by_id(youtube_id: str):
     conn = get_db()
     cursor = conn.cursor()
@@ -115,7 +110,40 @@ def get_track_by_id(youtube_id: str):
     cursor.execute(query)
     res = cursor.fetchall()
 
-    return True if len(res) > 1 else False
+    return True if res[0][0] > 0 else False
+
+
+def get_track_info(track_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    query = (
+        f"""SELECT container, blob_name FROM dbo.audio_tracks where id = {track_id}"""
+    )
+    cursor.execute(query)
+
+    track_data = cursor.fetchall()[0]
+
+    sas_url = blob_sas_url(track_data[0], track_data[1])
+
+    return sas_url
+
+
+def get_regions_by_id(audio_track_id: int):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    query = f"""SELECT label, [start], [end] from dbo.loop_regions where audio_track_id = '{audio_track_id}'"""
+
+    cursor.execute(query)
+    regions = cursor.fetchall()
+
+    regions = [
+        {"label": label, "start": start, "end": end} for label, start, end in regions
+    ]
+
+    return regions if len(regions) > 0 else []
+
 
 if __name__ == "__main__":
     main()
