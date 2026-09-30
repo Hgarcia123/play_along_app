@@ -5,58 +5,43 @@
     <title>Play-Along Assistant</title>
     <link rel="stylesheet" type="text/css" href="static/base_style.css">
   </head>
-
-  <div class="Header">
+<body>
+  <header class="Header">
     <h1>Play-Along Assistant</h1>
-    <body>
         <p>Download any audio track from Youtube and add loop points to help you practise!</p>
         <form method="POST">
             <label for="youtube_url">Youtube URL</label>
             <input type="url" name="youtube_url" id="youtube_url">
             <input type="submit" value="Submit">
         </form>
-    </body>
-  </div>
-
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="flash error">
-        {{ message }}
-        <button onclick="this.parentElement.remove()">×</button>
-      </div>
-    {% endfor %}
-  {% endwith %}
-
-  <h2 class="track-title">Track Gallery</h2>
-
-  <table class="track-gallery">
-      <thead>
-          <tr>
-              <th>Artist</th>
-              <th>Song</th>
-              <th>Album</th>
-              <th>Album Cover</th>
-              <th>Link to wave page</th>
-          </tr>
-      </thead>
-      <tbody>
-      {% for track in track_data %}
-      <tr>
-          <td>{{ track.artist }}</td>
-          <td>{{ track.track_name }}</td>
-          <td>{{ track.track_album }}</td>
-          <td>
-            <div class="thumb-wrap">
-              <img src="{{ track.thumbnail }}" alt="thumbnail">
-            </div>
-          </td>
-          <td>
-            <a href="{{ url_for('project.wave_audio', track_id=track.id) }}" class="play-link">
-              <button type="button">Go to</button>
-            </a>  
-          </td>
-      </tr>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash error">
+          {{ message }}
+          <button onclick="this.parentElement.remove()">×</button>
+        </div>
       {% endfor %}
-      </tbody>
-  </table>
+    {% endwith %}
+
+    <h2 class="track-title">Track List</h2>
+
+    <ul class="track-list">
+      {% for track in track_data %}
+      <li class="track">
+        <img class="album-cover" src="{{ track.thumbnail }}" alt="Cover for {{ track.track_name }}" loading="lazy">
+        <div class="meta">
+          <span class="song">{{ track.track_name }}</span>
+          <span class="artist">{{ track.artist }}</span>
+          {% if track.track_album %}<span class="album">{{ track.track_album }}</span>{% endif %}
+        </div>
+        <a href="{{ url_for('project.wave_audio', track_id=track.id) }}" class="open">Practise</a>
+      </li>
+      {% else %}
+      <li class="empty">No tracks yet.</li>
+      {% endfor %}
+    </ul>
+  </main>
+</body>
 </html>
