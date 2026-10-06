@@ -2,7 +2,8 @@
 # Main Frameworks/Packages
 - Flask
 - yt-dlp
-- Azure SQL Server
+- sqlite3
+- Azure Blob Storage
 
 # Pre-requisites
 - Python (Version 3.13)
@@ -43,10 +44,15 @@ pip install -r requirements.txt
 ```
 
 5. With all this set, you are ready to start the Flask app! 
-```flask --app project run```
+```flask --app play_along/ run```
+
+Or to run in debug mode:
+```flask --app play_along/ run --debug```
+
 
 # Initialize DB
 
-If you wish so and if you have admin permissions for Azure SQL Server, you can initialize fresh new tables in play_along_app_db using the following command. Make sure you are in the same dir as the `project.py` file.
+If you wish so, you can initialize fresh new tables in play_along_app_db using the following command. 
+This will also delete all audio files from azure blob storage.
 
-```flask --app project init-db```
+```flask --app play_along/ init-db```
