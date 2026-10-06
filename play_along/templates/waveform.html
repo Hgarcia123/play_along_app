@@ -2,44 +2,52 @@
 <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
 
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>{{ track_data.track_name }} - {{ track_data.artist }}</title>
-  <link rel="stylesheet" type="text/css" href="/static/waveform_style.css">
+  <link rel="stylesheet" type="text/css" href="/static/waveform_style.css" />
 </head>
 
-<div class="track-header">
+<button id="backBtn" type="button" aria-label="Back">Back</button>
+
+<header>
+
   <div class="album-cover-wrap">
-    <img src="{{ track_data.thumbnail }}" alt="Album cover" width="120">
+    <img src="{{ track_data.thumbnail }}" alt="Album cover" width="120" />
   </div>
-  <div>
-    <h1>{{ track_data.track_name }}</h1>
-    <p>{{ track_data.artist }} · {{ track_data.track_album }}</p>
-  </div>
-</div>
+  <h1>{{ track_data.track_name }}</h1>
+  <p>{{ track_data.artist }} · {{ track_data.track_album }}</p>
+</header>
 
-<div id="waveform"></div>
+<body>
+  <div id="loading" class="loading">Loading audio...</div>
+  <div id="waveform"></div>
 
-<button id="playBtn" type="button" aria-label="Play/Pause">
-  <img id="playIcon" src="{{ url_for('static', filename='icons/play-button.png') }}" alt="Play">
-</button>
+  <button id="playBtn" type="button" aria-label="Play/Pause">
+    <img
+      id="playIcon"
+      src="{{ url_for('static', filename='icons/play-button.svg') }}"
+      alt="Play"
+    />
+  </button>
 
-<table id="regions-table">
-  <thead>
-    <tr>
-      <th>Label</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <form method="POST">
-    <tbody id="regions-table-body"></tbody>
-</table>
-<input type="hidden" name="regions" id="regions-data">
+  <form class="form" method="POST" id="regions-form">
+    <table id="regions-table" hidden>
+      <thead>
+        <tr>
+          <th>Label</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="regions-table-body"></tbody>
+    </table>
 
-<input type="submit" value="Save to DB" class="saveBtn">
-</form>
+    <p id="no-regions-msg">No loop regions yet created. Click and drag on the waveform to create one.</p>
 
+    <button type="button" id="saveBtn" class="saveBtn">Save to DB</button>
+  </form>
+</body>
 
 <script>
   const wsRegions = WaveSurfer.Regions.create();
@@ -47,10 +55,11 @@
   const playBtn = document.getElementById('playBtn');
   const playIcon = document.getElementById('playIcon');
 
+  const loadingEl = document.getElementById('loading');
 
   const ICONS = {
-    play: "{{ url_for('static', filename='icons/play-button.png') }}",
-    pause: "{{ url_for('static', filename='icons/pause.png') }}"
+    play: "{{ url_for('static', filename='icons/play-button.svg') }}",
+    pause: "{{ url_for('static', filename='icons/pause.svg') }}"
   }
 
   // Creation of random color rgba
@@ -76,108 +85,124 @@
   wavesurfer.on('pause', () => {
     playIcon.src = ICONS.play;
     playIcon.alt = 'Play';
-  })
+  });
+
+  wavesurfer.on('loading', (percent) => {
+    loadingEl.textContent = `Loading audio... ${percent}%`;
+  });
 
   const savedRegions = {{ regions | tojson }};
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    window.location.href = {{ url_for('project.main') | tojson }};
+  });
 
   document.getElementById('playBtn').addEventListener('click', () => {
     wavesurfer.playPause();
   });
 
-  document.querySelector('form').addEventListener('submit', () => {
+  document.getElementById('saveBtn').addEventListener('click', async () => {
     const data = wsRegions.getRegions().map(r => ({
       label: r.content?.textContent || r.content || '',
       start: r.start,
       end: r.end,
       color: r.color
     }));
-    document.getElementById('regions-data').value = JSON.stringify(data);
+
+    const body = new FormData();
+    body.append('regions', JSON.stringify(data));
+
+    try {
+      const res = await fetch(window.location.href, { method: 'POST', body });
+      if (!res.ok) throw new Error(res.status);
+      alert("Saved to db!")
+    } catch (err) {
+      alert('Save failed: ' + err.message);
+    }
   });
+
 
   wavesurfer.on('play', () => {
 
   });
 
   //Enable click-and-drag creation of new reagions
-  wavesurfer.on('ready', () => {
+wavesurfer.on('ready', () => {
+  let activeRegion = null;
+  let loadingSaved = true;   // suppress the prompt while loading saved regions
+  loadingEl.style.display = 'none';
 
-    let activeRegion = null;
+  wsRegions.enableDragSelection({});
 
-    wsRegions.enableDragSelection({
-      // color: randomCssRgba()
-    });
+  // Register listeners FIRST
+  wsRegions.on('region-created', (region) => {
+    if (loadingSaved) return;
 
-    // Load previously saved regions
-    savedRegions.forEach((r) => {
-      const region = wsRegions.addRegion({
-        content: r.label,
-        start: r.start,
-        end: r.end,
-        color: r.color,
-        drag: true,
-        resize: true,
-      });
-      region.loop = true
-    });
-
-    refreshRegionsTable()
-
-
-    wsRegions.on('region-created', (region) => {
-      const label = prompt("Label this region", 'New region');
-      if (label) {
-        region.setContent(label);
-        region.loop = true;
-        region.setOptions({ color: randomCssRgba() });
-      } else {
-        region.remove();
-        return;
-      }
-      refreshRegionsTable();
-    });
-
-    wsRegions.on('region-updated', () => {
-      refreshRegionsTable();
-    });
-
-    wsRegions.on('region-removed', () => {
-      refreshRegionsTable();
-    });
-
-    wsRegions.on('region-in', (region) => {
-      activeRegion = region
-    })
-
-    wsRegions.on('region-out', (region) => {
-      if (activeRegion !== region) return;
-
-      // only loop if we left by playing past the end, not by seeking away
-      const atEnd = Math.abs(wavesurfer.getCurrentTime() - region.end) < 0.1;
-      if (region.loop && atEnd) {
-        region.play();
-      } else {
-        activeRegion = null;
-      }
-    })
-
-    wsRegions.on('region-clicked', (region, e) => {
-      e.stopPropagation();
-      activeRegion = region;
-      region.play();
-    });
-
-    wsRegions.on('interaction', (time) => {
-      const hit = wsRegions.getRegions().find(r => time >= r.start && time <= r.end);
-      activeRegion = hit ?? null;
-    })
-
+    const label = prompt('Label this region', 'New region');
+    if (label) {
+      region.setContent(label);
+      region.loop = true;
+      region.setOptions({ color: randomCssRgba() });
+    } else {
+      region.remove();
+      return;
+    }
+    refreshRegionsTable();
   });
 
+  wsRegions.on('region-updated', refreshRegionsTable);
+  wsRegions.on('region-removed', refreshRegionsTable);
+  wsRegions.on('region-in', (region) => { activeRegion = region; });
+
+  wsRegions.on('region-out', (region) => {
+    if (activeRegion !== region) return;
+    const atEnd = Math.abs(wavesurfer.getCurrentTime() - region.end) < 0.1;
+    if (region.loop && atEnd) {
+      region.play();
+    } else {
+      activeRegion = null;
+    }
+  });
+
+  wsRegions.on('region-clicked', (region, e) => {
+    e.stopPropagation();
+    activeRegion = region;
+    region.play();
+  });
+
+  wsRegions.on('interaction', (time) => {
+    activeRegion = wsRegions.getRegions().find(r => time >= r.start && time <= r.end) ?? null;
+  });
+
+  // THEN load saved regions
+  savedRegions.forEach((r) => {
+    const region = wsRegions.addRegion({
+      content: r.label,
+      start: r.start,
+      end: r.end,
+      color: r.color,
+      drag: true,
+      resize: true,
+    });
+    region.loop = true;
+  });
+  loadingSaved = false;
+
+  refreshRegionsTable();
+});
+
   function refreshRegionsTable() {
+
     const tbody = document.getElementById('regions-table-body');
+    const table = document.getElementById('regions-table');
+    const emptyMsg = document.getElementById('no-regions-msg');
     tbody.innerHTML = '';
 
     const regions = wsRegions.getRegions();
+    const hasRegions = regions.length > 0;
+
+    emptyMsg.hidden = hasRegions;
+    table.hidden = !hasRegions;
 
     regions.forEach((region) => {
       const row = document.createElement('tr');
@@ -203,5 +228,4 @@
       tbody.appendChild(row);
     });
   }
-
 </script>

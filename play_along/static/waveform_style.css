@@ -2,6 +2,38 @@ html {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+:root {
+    --paper: #121224;
+    --ink: #e8edf4;
+    --line: rgb(171, 172, 172);
+}
+
+body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+header{
+    margin-top: 10;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+}
+
+#backBtn{
+    background-color: rgb(67, 67, 243);
+    border-radius: 8px;
+    color: white;
+    margin: 20px 0 0 15px;
+    padding: 10px 16px;
+    text-align: left;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
 
 .album-cover-wrap {
     width: 180px;
@@ -18,10 +50,23 @@ html {
     object-position: center;
 }
 
-.track-header{
-    text-align: center;
-    align-items: center;
+
+
+header h1{
+    margin: 10 0 0 0;
 }
+
+header p{
+    margin: 5 0 16 0;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+}
+
 
 #playBtn{
     background: none;
@@ -29,13 +74,14 @@ html {
     padding: 0;
     cursor: pointer;
     display: block;
-    margin: 15px auto;
+    margin: 25px auto;
 }
 
 #playBtn img{
     display: block;
     width: 35px;
     height: 35px;
+    filter: invert(1);
 }
 
 table{
@@ -47,6 +93,13 @@ table{
     margin-right: auto;
 }
 
+#waveform ::part(region-content) {
+    color: #000000;
+    background-color: rgb(250, 250, 250, 0.85);
+    border-radius: 6px;
+    display: inline-block;
+}
+
 th, td {
   padding: 12px 16px;          /* the main fix for cramped cells */
   border: 1px solid #ddd;
@@ -54,11 +107,31 @@ th, td {
 }
 
 tr:hover {
-  background-color: #eef4ff;   /* highlights the row under the cursor */
+  background-color: #eef4ff61;   /* highlights the row under the cursor */
+}
+
+.form {
+    text-align: center;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#no-regions-msg {
+    margin-top: 50px;
+    font-style: italic;
 }
 
 .saveBtn{
-    display: block;
-    margin: 0 auto;
-    margin-top: 25;
+    background-color: rgb(67, 67, 243);
+    border-radius: 8px;
+    color: white;
+    margin-top: 20px;
+    padding: 10px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
 }
