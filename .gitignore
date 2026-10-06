@@ -1,5 +1,5 @@
 __pycache__
 .env
 
-/play_along/audio_files/*
-!/play_along/audio_files/.gitkeep
+/play_along/temp_audio_files/*
+!/play_along/temp_audio_files/.gitkeep

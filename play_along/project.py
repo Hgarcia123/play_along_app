@@ -14,7 +14,7 @@ from play_along.blob import (
 from mssql_python import IntegrityError
 
 from flask import Blueprint, render_template, request, flash, abort
-import json
+import os, json
 from dotenv import load_dotenv
 
 # YT Downloader
@@ -31,13 +31,12 @@ bp = Blueprint("project", __name__)
 
 
 # ENDPOINTS
-
-
 ## HOMEPAGE
 @bp.route("/", methods=["GET", "POST"])
 def main():
     if request.method == "POST":
         try:
+            local_path = None
             url = request.form.get("youtube_url")
 
             # Verify if track already exists in db
@@ -51,6 +50,9 @@ def main():
                 # Download audio track from youtube
                 track_info_dict = download_audiotrack(url, download=True)
 
+                #get local path of file
+                local_path = track_info_dict["requested_downloads"][0]["filepath"]
+
                 # Send audio file to azure blob storage
                 blob_name = send_audio_to_az_blob(track_info_dict.get("title", ""))
 
@@ -62,6 +64,10 @@ def main():
         except Exception as e:
             print(f"An exception was thrown with the following error: {e}")
 
+        finally:
+            if local_path and os.path.exists(local_path):
+                os.remove(local_path)
+                
     # Query database for track data stored
     track_data = get_all_track_info_from_db()
     return render_template("base.html", track_data=track_data)
@@ -71,18 +77,14 @@ def main():
 @bp.route("/wave/<int:track_id>", methods=["GET", "POST"])
 def wave_audio(track_id):
     if request.method == "POST":
-        # Get all regions created for current track
         regions = json.loads(request.form.get("regions", "[]"))
-
-        # Send regions to DB
         send_regions_to_db(regions, track_id)
+        return "", 204  # no page reload, nothing to render
 
     # Get track info
     track_data = get_track_info_by_id(track_id)
-
     # Get track blob storage info
     sas_url = get_track_blob_storage(track_id)
-
     # Get previously saved regions of track
     regions = get_regions_by_id(track_id)
 
