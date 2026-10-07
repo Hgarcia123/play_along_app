@@ -172,15 +172,19 @@ def send_track_info_to_db(track_info: dict, blob_name: str):
     finally:
         cursor.close()
 
-def delete_track_info_to_db(track_id: dict, blob_name: str):
+def delete_track_info_from_db(track_id: int, blob_name: str):
 
     conn = get_db()
     cursor = conn.cursor()
     try:
-        query = "DELETE FROM audio_tracks WHERE id = %s;"
+        query = "DELETE FROM audio_tracks WHERE id = ?;"
 
         cursor.execute(query, (track_id,))
         conn.commit()
+
+        if cursor.rowcount == 0:
+            return False
+        
     except Exception:
         conn.rollback()
         raise
@@ -188,8 +192,10 @@ def delete_track_info_to_db(track_id: dict, blob_name: str):
         cursor.close()
 
     #Delete blob storage audio
-    from blob import delete_audio_from_az_blob
+    from play_along.blob import delete_audio_from_az_blob
     delete_audio_from_az_blob(blob_name=blob_name)
+
+    return True
 
 
 ## REGIONS
