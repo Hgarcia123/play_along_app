@@ -114,12 +114,13 @@ def download_audiotrack(url: str, download: bool = True):
         return track_info_dict
 
 def send_audio_to_az_blob(audio_file_path:str):
+
     try:
         audio_file_path = Path(AUDIO_DIR + "/" + audio_file_path + ".mp3")
         blob_name = f"{uuid.uuid4()}.mp3"
 
         from play_along.blob import blob_service_client
-        
+
         blob = blob_service_client.get_blob_client(container="play-along-app-audio-files", blob=blob_name)
 
         print("\nUploading to Azure Storage as blob:\n\t" + blob_name)
@@ -127,7 +128,6 @@ def send_audio_to_az_blob(audio_file_path:str):
         # Upload the created file
         with audio_file_path.open("rb") as data:
             blob.upload_blob(data)
-
             return blob_name
 
     except Exception as e:
