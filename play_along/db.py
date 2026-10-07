@@ -165,8 +165,6 @@ def send_track_info_to_db(track_info: dict, blob_name: str):
 
 
 ## REGIONS
-
-
 def get_regions_by_id(audio_track_id: int):
     conn = get_db()
     cursor = conn.cursor()
