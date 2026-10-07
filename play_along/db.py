@@ -141,27 +141,55 @@ def send_track_info_to_db(track_info: dict, blob_name: str):
     container = "play-along-app-audio-files"
     content_type = "audio/mpeg"
 
-    query = f"""
-        INSERT INTO audio_tracks (youtube_id, artist, track_name, track_album, thumbnail, duration_sec, blob_name, container, content_type)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
+    try:
+        query = f"""
+            INSERT INTO audio_tracks (youtube_id, artist, track_name, track_album, thumbnail, duration_sec, blob_name, container, content_type)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
 
-    cursor.execute(
-        query,
-        (
-            youtube_id,
-            artist,
-            track_name,
-            track_album,
-            thumbnail,
-            duration_sec,
-            blob_name,
-            container,
-            content_type,
-        ),
-    )
-    conn.commit()
-    cursor.close()
+        cursor.execute(
+            query,
+            (
+                youtube_id,
+                artist,
+                track_name,
+                track_album,
+                thumbnail,
+                duration_sec,
+                blob_name,
+                container,
+                content_type,
+            ),
+        )
+        conn.commit()
+        #Return id created automatically in DB
+        new_id = cursor.lastrowid
+        return new_id
+    
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+
+def delete_track_info_to_db(track_id: dict, blob_name: str):
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        query = "DELETE FROM audio_tracks WHERE id = %s;"
+
+        cursor.execute(query, (track_id,))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+
+    #Delete blob storage audio
+    from blob import delete_audio_from_az_blob
+    delete_audio_from_az_blob(blob_name=blob_name)
 
 
 ## REGIONS
