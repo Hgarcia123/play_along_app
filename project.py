@@ -11,9 +11,15 @@ from play_along.blob import (
     send_audio_to_az_blob,
 )
 
-from mssql_python import IntegrityError
+from play_along import create_app
 
-from flask import Blueprint, render_template, request, flash, abort
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    flash
+)
+
 import os, json
 from dotenv import load_dotenv
 
@@ -106,6 +112,9 @@ def download_audiotrack(url: str, download: bool = True):
 
         return track_info_dict
 
+#Create app
+app = create_app()
+app.register_blueprint(bp)
 
 if __name__ == "__main__":
-    main()
+    app.run()

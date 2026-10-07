@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 #Global Variable
-from play_along.config import AUDIO_DIR
+from .config import AUDIO_DIR
 
 #Azure Services
 from azure.identity import DefaultAzureCredential

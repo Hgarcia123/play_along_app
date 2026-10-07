@@ -5,7 +5,7 @@ import sqlite3
 import click
 import time
 
-from play_along.blob import delete_all_audio_from_az_blob, blob_sas_url
+from .blob import delete_all_audio_from_az_blob, blob_sas_url
 
 from flask import g, current_app, Flask
 from dotenv import load_dotenv
