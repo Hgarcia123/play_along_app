@@ -49,10 +49,10 @@ pip install -r requirements.txt
 ```
 
 5. With all this set, you are ready to start the Flask app! 
-```flask --app play_along/ run```
+```flask --app project.py run```
 
 Or to run in debug mode:
-```flask --app play_along/ run --debug```
+```flask --app project.py run --debug```
 
 
 # Initialize DB
@@ -60,4 +60,4 @@ Or to run in debug mode:
 If you wish so, you can initialize fresh new tables in play_along_app_db using the following command. 
 This will also delete all audio files from azure blob storage.
 
-```flask --app play_along/ init-db```
+```flask --app project.py init-db```
