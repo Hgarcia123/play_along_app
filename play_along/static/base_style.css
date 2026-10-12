@@ -1,38 +1,74 @@
 html {
-    font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 :root {
-    --paper: #121224;
-    --ink: #e8edf4;
-    --line: rgb(171, 172, 172);
-    --danger-bg: #3a1c1f;
-    --danger-ink: #ffb3b3;
+  --paper: #121224;
+  --ink: #e8edf4;
+  --line: rgb(171, 172, 172);
+  --danger-bg: #3a1c1f;
+  --danger-ink: #ffb3b3;
 }
 
 .Header {
-    text-align: center;
+  text-align: center;
 }
 
 body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
 }
 
-.track-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; text-align: center;}
+.track-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 50px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
 
-.track-list { list-style: none; margin: 0 0 4rem; padding: 0 300px 0 300px; }
+.track-list {
+  list-style: none;
+  margin: 0 0 4rem;
+  padding: 0 300px 0 300px;
+}
 
 .track {
   display: grid;
-  grid-template-columns: 4.5rem 1fr auto;
+  grid-template-columns: 4.5rem 1fr 1fr auto auto;
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 0;
   border-top: 1px solid var(--line);
 }
-.track:last-child { border-bottom: 1px solid var(--line); }
+.track:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.track .open {
+  background-color: rgb(67, 67, 243);
+  border-radius: 8px;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  width: auto;
+  justify-self: end;
+}
+
+.track .removeTrack {
+  background-color: rgb(228, 78, 78);
+  border-radius: 8px;
+  border: 0;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
 
 .album-cover {
   width: 7rem;
@@ -42,14 +78,29 @@ body {
   background: var(--line);
 }
 
-.meta { display: flex; flex-direction: column; min-width: 0; padding-left: 40px;}
+.meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-left: 40px;
+}
 .song {
-  font: 700 1.3rem/1.5 "Bricolage Grotesque", system-ui, sans-serif;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font:
+    700 1.3rem/1.5 "Bricolage Grotesque",
+    system-ui,
+    sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.artist { color: var(--ink); }
-.album { color: var(--muted); font-size: 1rem; }
+.artist {
+  color: var(--ink);
+}
+.album {
+  color: var(--muted);
+  font-size: 1rem;
+}
 
 /* Flash messages */
 .flash {
@@ -75,19 +126,7 @@ body {
 }
 
 .empty {
-    margin-top: 50px;
-    font-style: italic;
-    text-align: center;
-}
-
-.open {
-    background-color: rgb(67, 67, 243);
-    border-radius: 8px;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    cursor: pointer;
+  margin-top: 50px;
+  font-style: italic;
+  text-align: center;
 }

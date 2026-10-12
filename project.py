@@ -1,6 +1,7 @@
 from play_along.db import (
     get_track_info_by_id,
     get_all_track_info_from_db,
+    delete_track_info_from_db,
     send_regions_to_db,
     send_track_info_to_db,
     get_track_blob_storage,
@@ -14,9 +15,9 @@ from flask import (
     Blueprint,
     render_template,
     request,
+    abort,
     flash
 )
-
 
 import os, json
 from dotenv import load_dotenv
@@ -77,6 +78,7 @@ def main():
                 
     # Query database for track data stored
     track_data = get_all_track_info_from_db()
+
     return render_template("base.html", track_data=track_data)
 
 
@@ -96,6 +98,14 @@ def wave_audio(track_id):
     regions = get_regions_by_id(track_id)
 
     return render_template("waveform.html", url=sas_url, track_data=track_data, regions=regions)
+
+## DELETE AUDIO TRACK
+@bp.route("/track/<int:track_id>/<string:blob_name>", methods=["DELETE"])
+def delete_track_route(track_id, blob_name):
+    if not delete_track_info_from_db(track_id, blob_name):
+        abort(404)
+
+    return "", 204
 
 
 def download_audiotrack(url: str, download: bool = True):

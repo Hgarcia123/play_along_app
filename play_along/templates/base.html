@@ -37,6 +37,7 @@
           {% if track.track_album %}<span class="album">{{ track.track_album }}</span>{% endif %}
         </div>
         <a href="{{ url_for('project.wave_audio', track_id=track.id) }}" class="open">Practise</a>
+        <button class="removeTrack" type="button" data-track-id="{{ track.id }}" data-blob-name="{{ track.blob_name }}">×</button>
       </li>
       {% else %}
       <li class="empty">No tracks yet.</li>
@@ -45,3 +46,23 @@
   </main>
 </body>
 </html>
+
+<script>
+  document.querySelectorAll('.removeTrack').forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete track and it's saved regions?")) return;
+
+      const id = btn.dataset.trackId;
+      const blobName = btn.dataset.blobName
+
+      const res = await fetch(`track/${id}/${blobName}`, { method: "DELETE" });
+
+      if(!res.ok) {
+        alert("Could not delete track")
+      }
+
+      btn.closest(".track").remove()
+
+    })
+  })
+</script>

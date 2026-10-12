@@ -47,6 +47,7 @@ def get_db(retries=5, delay=5):
                     current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
                 )
                 g.db.row_factory = sqlite3.Row
+                g.db.execute("PRAGMA foreign_keys = ON")
 
             return g.db
 
@@ -99,7 +100,7 @@ def get_all_track_info_from_db():
     conn = get_db()
     cursor = conn.cursor()
 
-    query = """SELECT id, youtube_id, artist, track_name, track_album, thumbnail FROM audio_tracks"""
+    query = """SELECT id, youtube_id, artist, track_name, track_album, thumbnail, blob_name FROM audio_tracks"""
     cursor.execute(query)
     track_data = cursor.fetchall()
     cursor.close()
