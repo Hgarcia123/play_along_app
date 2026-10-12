@@ -70,6 +70,13 @@ body {
   cursor: pointer;
 }
 
+.track .removeTrack img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  filter: invert(1);
+}
+
 .album-cover {
   width: 7rem;
   height: 7rem;
